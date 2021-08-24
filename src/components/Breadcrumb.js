@@ -19,3 +19,5 @@ function Breadcrumb({ $app, initialState }) {
     `; 
   }
 }
+
+export default Breadcrumb;
