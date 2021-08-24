@@ -1,35 +1,44 @@
-import Breadcrumb from "./components/Breadcrumb.js";
+// import { request } from "./api/api.js";
+// import Breadcrumb from "./components/Breadcrumb.js";
 import Nodes from "./components/Nodes.js";
 
 // App.js
 function App($app) {
-  this.state = {
-    isRoot: false,
-    nodes: [],
-    depth: [],
-  }
-
-  // Breadcrumb 조율
-  const breadcrumb = new Breadcrumb({
-    $app,
-    initialState: this.state.depth,
-  })
-
-  // Node 조율
-  const nodes = new Nodes({ 
-    $app, 
-    initialState: {
-      isRoot: this.state.isRoot,
-      nodes: this.state.nodes,
+  
+  const nodeItem = [
+    {
+      id: "5",
+      name: "2021/04",
+      type: 'DIRECTORY',
+      filePath: null,
+      parent: {
+        id: 1,
+      }
     },
-    onClick:(node) => {
-      if(node.type === "DIRECTORY"){
-        //디렉토리
-      } else {
-        // 파일인 경우  
+    {
+      id: "19",
+      name: "물 마시는 사진",
+      type: 'FILE',
+      filePath: "/images/a2i.jpg",
+      parent: {
+        id: 1,
       }
     }
+  ]
+
+  const nodes = new Nodes({
+    $app, 
+    initialState: {
+      node: nodeItem
+    }
   })
+
+  // 이후 nodes를 갱신할 일이 있다면 nodes.setState를 호출
+  const nextState = {
+    node: nodeItem
+  }
+
+  nodes.setState(nextState);
 }
 
 export default App;
