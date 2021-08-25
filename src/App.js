@@ -1,4 +1,4 @@
-// import { request } from "./api/api.js";
+import { request } from "./api/index.js";
 import Breadcrumb from "./components/Breadcrumb.js";
 import Nodes from "./components/Nodes.js";
 
@@ -6,46 +6,8 @@ import Nodes from "./components/Nodes.js";
 function App($app) {
   this.state = {
     isRoot: false,
-    nodes: [
-      {
-        id: "5",
-        name: "2021/04",
-        type: 'DIRECTORY',
-        filePath: null,
-        parent: {
-          id: 1,
-        }
-      },
-      {
-        id: "19",
-        name: "물 마시는 사진",
-        type: 'FILE',
-        filePath: "/images/a2i.jpg",
-        parent: {
-          id: 1,
-        }
-      }
-    ],
-    depth: [
-      {
-        id: "5",
-        name: "2021/04",
-        type: 'DIRECTORY',
-        filePath: null,
-        parent: {
-          id: 1,
-        }
-      },
-      {
-        id: "19",
-        name: "물 마시는 사진",
-        type: 'FILE',
-        filePath: "/images/a2i.jpg",
-        parent: {
-          id: 1,
-        }
-      }
-    ]
+    nodes: [],
+    depth: []
   }
 
   // nav 생성
@@ -57,23 +19,47 @@ function App($app) {
   // 사진첩 생성 생성
   const nodes = new Nodes({
     $app, 
-    initialState: {
-      isRoot: this.state.isRoot,
-      nodes: this.state.nodes,
-    },
-    onClick: (node) => {
-      if(node.type === "DIRECTORY"){
-        // DIRECTORY 처리
-        alert('DIRECTORY');
-      }else if(node.type === "FILE"){
-        // FILE 처리
-        alert('FILE');
+    initialState: [],
+    onClick: async (node) => {
+      try {
+        if(node.type === "DIRECTORY"){
+          // DIRECTORY 처리
+          const nextNodes = await request(node.id);
+          console.log("nextNodes", nextNodes);
+          this.setState({
+            ...this.state,
+            depth: [...this.state.depth, node],
+            nodes: nextNodes
+          })
+        }else if(node.type === "FILE"){
+          // FILE 처리
+
+
+        }
+      }catch(e) {
+        console.log("e :", e.message);
       }
     }
   })
 
   breadcrumb.setState(this.state);
   nodes.setState(this.state);
+
+  const init = async () => {
+   try {
+     const rootNodes = await request();
+     breadcrumb.setState({
+       ...this.state,
+       isRoot: true,
+       nodes: rootNodes,
+     })
+   }catch(e) {
+     // 에러 처리하기
+   }
+  }
+
+  init();
+
 }
 
 export default App;
