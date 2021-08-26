@@ -1,14 +1,22 @@
 import { request } from "./api/index.js";
 import Breadcrumb from "./components/Breadcrumb.js";
 import Nodes from "./components/Nodes.js";
+import ImageView from "./components/ImageView.js";
 
 // App.js
 function App($app) {
   this.state = {
     isRoot: false,
     nodes: [],
-    depth: []
+    depth: [],
+    selectFilePath: null,
+    selectedNodeImage: null,
   }
+
+  const imageView = new ImageView({
+    $app,
+    initialState: this.state.selectedNodeImage
+  })
 
   // nav 생성
   const breadcrumb = new Breadcrumb({
@@ -42,8 +50,17 @@ function App($app) {
     }
   })
 
-  breadcrumb.setState(this.state);
-  nodes.setState(this.state);
+  this.setState = nextState => {
+    this.state = nextState 
+    breadcrumb.setState(this.state.depth);
+    nodes.setState({
+      isRoot: this.state.isRoot,
+      nodes: this.state.nodes
+    });
+
+    imageView.setState(this.state.selectFilePath);  
+  }
+
 
   const init = async () => {
    try {
