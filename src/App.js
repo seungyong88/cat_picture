@@ -1,7 +1,7 @@
 import { request } from "./api/index.js";
 import Breadcrumb from "./components/Breadcrumb.js";
 import Nodes from "./components/Nodes.js";
-import ImageView from "./components/ImageView.js";
+// import ImageView from "./components/ImageView.js";
 
 // App.js
 function App($app) {
@@ -13,10 +13,10 @@ function App($app) {
     selectedNodeImage: null,
   }
 
-  const imageView = new ImageView({
-    $app,
-    initialState: this.state.selectedNodeImage
-  })
+  // const imageView = new ImageView({
+  //   $app,
+  //   initialState: this.state.selectedNodeImage
+  // })
 
   // nav 생성
   const breadcrumb = new Breadcrumb({
@@ -32,17 +32,10 @@ function App($app) {
       try {
         if(node.type === "DIRECTORY"){
           // DIRECTORY 처리
-          const nextNodes = await request(node.id);
-          console.log("nextNodes", nextNodes);
-          this.setState({
-            ...this.state,
-            depth: [...this.state.depth, node],
-            nodes: nextNodes
-          })
+          console.log("DIRECTORY")
         }else if(node.type === "FILE"){
           // FILE 처리
-
-
+          console.log("FILE")
         }
       }catch(e) {
         console.log("e :", e.message);
@@ -51,6 +44,7 @@ function App($app) {
   })
 
   this.setState = nextState => {
+    console.log(nextState);
     this.state = nextState 
     breadcrumb.setState(this.state.depth);
     nodes.setState({
@@ -58,7 +52,7 @@ function App($app) {
       nodes: this.state.nodes
     });
 
-    imageView.setState(this.state.selectFilePath);  
+    // imageView.setState(this.state.selectFilePath);  
   }
 
 
@@ -70,6 +64,17 @@ function App($app) {
        isRoot: true,
        nodes: rootNodes,
      })
+
+     console.log(rootNodes);
+
+     nodes.setState({
+      isRoot: this.state.isRoot,
+      nodes: rootNodes
+    });
+
+    console.log("@@@@@@@@@@", rootNodes);
+
+
    }catch(e) {
      // 에러 처리하기
    }

@@ -18,6 +18,8 @@ function ImageView({ $app, initialState }) {
       ${this.state ? `<img src="${IMAGE_PATH_PREFIX}${this.state}"`:''}
     </div>`;
 
+    console.log("@@@", this.state);
+    // this.$target.style.display = this.state ? 'block' : 'none'
     this.$target.style.display = this.state ? 'block' : 'none'
   }
 }

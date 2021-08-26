@@ -20,15 +20,20 @@ function Nodes({ $app, initialState, onClick }) {
 
   this.onClick = onClick;
 
-  // 파라메터가 없는 Nodes의 render 함수.
-  // 현재 상태(this.state) 기준으로 렌더링 한다.
   this.render = () => {
     if(this.state.nodes) {
-      const nodesTemplate = this.state.nodes
-      
-      this.$target.innerHTML = this.state.nodes.map(node => 
-        `<li>${node.name}</li>`
-      ).join("");
+      const nodesTemplate = this.state.nodes.map(node => {
+        const iconPath = node.type === 'FILE' ? './assets/file.png':'./assets/directory.png';
+        return `
+          <div class="Node" data-node-id="${node.id}">
+            <img src="${iconPath}" />
+            <div>${node.name}</div>
+          </div>
+        `
+      }).join('');
+
+
+      this.$target.innerHTML = !this.state.isRoot ? `<div class="Node"><img src="/assets/prev.png />"</div>${nodesTemplate}` : nodesTemplate;
     }
   }
 
