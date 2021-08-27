@@ -1,87 +1,67 @@
-import { request } from "./api/index.js";
-import Breadcrumb from "./components/Breadcrumb.js";
 import Nodes from "./components/Nodes.js";
-// import ImageView from "./components/ImageView.js";
+import Breadcrumb from "./components/Breadcrumb.js";
+import { request } from './api/index.js'
 
-// App.js
 function App($app) {
   this.state = {
-    isRoot: false,
+    isRoot: true,
     nodes: [],
+    breadcrumb: [],
     depth: [],
-    selectFilePath: null,
-    selectedNodeImage: null,
   }
 
-  // const imageView = new ImageView({
-  //   $app,
-  //   initialState: this.state.selectedNodeImage
-  // })
-
-  // nav 생성
   const breadcrumb = new Breadcrumb({
-    $app,
+    $app, 
+    // initialState: this.state.depth
     initialState: this.state.depth
   })
 
-  // 사진첩 생성 생성
   const nodes = new Nodes({
     $app, 
-    initialState: [],
+    initialState: {
+      isRoot: this.state.isRoot,
+      nodes: this.state.nodes
+    },
     onClick: async (node) => {
-      try {
-        if(node.type === "DIRECTORY"){
-          // DIRECTORY 처리
-          console.log("DIRECTORY")
-        }else if(node.type === "FILE"){
-          // FILE 처리
-          console.log("FILE")
-        }
-      }catch(e) {
-        console.log("e :", e.message);
+      if(node.type === "DIRECTORY") {
+        // DIRECTORY인 경우 처리
+        // 여기에서 Breadcrumb 관련 처리를 하게 되면 nodes에서는 breadcrumb 처리를 몰라도 됨
+        const nextNodes = await request(node.id);
+        this.setState({
+          ...this.state,
+          depth: [...this.state.depth, node],
+          nodes: nextNodes,
+        })
+      }else if(node.type === "FILE") {
+        // FILE 의 경우 처리
+        console.log("d");
       }
-    }
-  })
+    } 
+  });
 
-  this.setState = nextState => {
-    console.log(nextState);
-    this.state = nextState 
+  this.setState = (nextState) => {
+    this.state = nextState
     breadcrumb.setState(this.state.depth);
     nodes.setState({
       isRoot: this.state.isRoot,
       nodes: this.state.nodes
-    });
-
-    // imageView.setState(this.state.selectFilePath);  
+    })
   }
 
-
-  const init = async () => {
-   try {
-     const rootNodes = await request();
-     breadcrumb.setState({
-       ...this.state,
-       isRoot: true,
-       nodes: rootNodes,
-     })
-
-     console.log(rootNodes);
-
-     nodes.setState({
-      isRoot: this.state.isRoot,
-      nodes: rootNodes
-    });
-
-    console.log("@@@@@@@@@@", rootNodes);
-
-
-   }catch(e) {
-     // 에러 처리하기
-   }
+  this.init = async () => {
+    try{
+      const rootNodes = await request();
+      this.setState({
+        ...this.state,
+        isRoot: true,
+        nodes: rootNodes
+      })
+    }catch(e) {
+      throw new Error(e.message);
+    }
   }
 
-  init();
-
+  this.init();
 }
 
 export default App;
