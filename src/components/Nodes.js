@@ -3,9 +3,10 @@ function Nodes({ $app, initialState, onClick }) {
   this.onClick = onClick;
 
   // Component 를 렌더링 할 Dom 을 this.$target 이라는 이름으로 생성
-  this.$target = document.createElement("ul");
-  $app.appendChild(this.$target);
+  this.$target = document.createElement("div");
+  this.$target.className = "Nodes";
 
+  $app.appendChild(this.$target);
 
   // state를 받아서 현재 컴포넌트의 state 를 변경하고 다시 렌더링 하는 함수
   this.setState = (nextState) => {
