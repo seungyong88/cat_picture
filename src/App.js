@@ -1,8 +1,10 @@
 import Nodes from "./components/Nodes.js";
 import Breadcrumb from "./components/Breadcrumb.js";
 import ImageView from "./components/ImageView.js";
-import { request } from './api/index.js'
 import Loading from "./components/Loading.js";
+import { request } from './api/index.js'
+
+const cache = {}
 
 function App($app) {
   this.state = {
@@ -25,23 +27,32 @@ function App($app) {
     onClick: async (selectedNode) => {
       try {
         if(selectedNode.type === "DIRECTORY") {
-          const nextNodes = await loadingRequest(selectedNode.id);
+          if(cache[selectedNode.id]) {
+            this.setState({
+              ...this.state, 
+              depth: [...this.state.nodes, selectedNode],
+              nodes: cache[selectedNode.id]
+            })
+            // 캐시에 아이디가 존재 한다면 기존과 같음
+          }else {
+            const nextNodes = await loadingRequest(selectedNode.id);
 
-          this.setState({
-            ...this.state,
-            depth: [...this.state.depth, selectedNode], // push
-            nodes: nextNodes,
-          })
-
+            this.setState({
+              ...this.state,
+              depth: [...this.state.depth, selectedNode], // push
+              nodes: nextNodes,
+            })
+            // cache update
+            cache[selectedNode.id] = nextNodes;
+          }
         }else if(selectedNode.type === "FILE"){
-          //
           this.setState({
             ...this.state,
             selectedFilePath: selectedNode.filePath
           })
         }
       } catch(e) {
-        throw new Error(e.maessage);
+        throw new Error(e);
       }
     },
     onBackClick: async () => {
@@ -55,12 +66,18 @@ function App($app) {
         // root로 온 경우이므로 root처리
         if(prevNodeId === null) {
           // const rootNodes = 
-          await init();
+          // await init();
+          this.setState({
+            ...nextState,
+            isRoot: true,
+            nodes: cache.rootNodes
+          })
         }else{
-          const prevNodes = await loadingRequest(prevNodeId);
+          // const prevNodes = await loadingRequest(prevNodeId);
           this.setState({
             ...this.state,
-            nodes: prevNodes
+            isRoot: false,
+            nodes: cache[prevNodeId]
           })
         }
       
@@ -104,6 +121,8 @@ function App($app) {
         isRoot: true,
         nodes: rootNodes,
       })
+
+      cache.rootNodes = rootNodes;
     } catch(e) {
       throw new Error(e);
     }

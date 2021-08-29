@@ -3,7 +3,6 @@ function Loading({ $app, initialState }){
   this.$target = document.createElement("div");
   this.$target.className = "Loading Modal";
 
-  console.log($app, this.state);
   $app.appendChild(this.$target);
 
   this.setState = nextState => {
