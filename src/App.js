@@ -18,6 +18,32 @@ function App($app) {
     $app,
     initialState: {
       depth: this.state.depth
+    },
+    onClick: index => {
+      if(index === null) {
+        this.setState({
+          ...this.state,
+          isRoot: true,
+          depth: [],
+          nodes: cache.rootNodes
+        })
+        return;
+      }
+
+      // 같으면 아무런거 안함
+      if(index === this.state.depth.length -1) {
+        console.log('같은 위치');
+        return;
+      }
+
+      const nextState = {...this.state}
+      const nextDepth = this.state.depth.slice(0, index+1);
+
+      this.setState({
+        ...nextState,
+        depth: nextDepth,
+        nodes: cache[nextDepth[nextDepth.length -1].id]
+      })
     }
   })
 
@@ -30,7 +56,8 @@ function App($app) {
           if(cache[selectedNode.id]) {
             this.setState({
               ...this.state, 
-              depth: [...this.state.nodes, selectedNode],
+              isRoot: false,
+              depth: [...this.state.depth, selectedNode],
               nodes: cache[selectedNode.id]
             })
             // 캐시에 아이디가 존재 한다면 기존과 같음
@@ -39,6 +66,7 @@ function App($app) {
 
             this.setState({
               ...this.state,
+              isRoot: false,
               depth: [...this.state.depth, selectedNode], // push
               nodes: nextNodes,
             })
@@ -65,8 +93,6 @@ function App($app) {
 
         // root로 온 경우이므로 root처리
         if(prevNodeId === null) {
-          // const rootNodes = 
-          // await init();
           this.setState({
             ...nextState,
             isRoot: true,
@@ -89,7 +115,13 @@ function App($app) {
 
   const imageView = new ImageView({
     $app,
-    initialState: null
+    initialState: null,
+    onClick: () => {
+      this.setState({
+        ...this.state,
+        selectedFilePath: false
+      })
+    }
   })
 
   const loading = new Loading({ 
@@ -110,7 +142,6 @@ function App($app) {
     });
 
     imageView.setState(this.state.selectedFilePath);
-
   }
 
   const init = async () => {
