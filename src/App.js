@@ -1,67 +1,126 @@
 import Nodes from "./components/Nodes.js";
 import Breadcrumb from "./components/Breadcrumb.js";
+import ImageView from "./components/ImageView.js";
 import { request } from './api/index.js'
+import Loading from "./components/Loading.js";
 
 function App($app) {
   this.state = {
-    isRoot: true,
-    nodes: [],
-    breadcrumb: [],
-    depth: [],
+    isRoot: true, // 초기화시 root true
+    depth: [], // breadcrumb 에 사용할 depth
+    nodes: [], // 디렉토리 안 표시할 nodes
+    selectedFilePath: null
   }
 
   const breadcrumb = new Breadcrumb({
-    $app, 
-    // initialState: this.state.depth
-    initialState: this.state.depth
+    $app,
+    initialState: {
+      depth: this.state.depth
+    }
   })
 
   const nodes = new Nodes({
     $app, 
-    initialState: {
-      isRoot: this.state.isRoot,
-      nodes: this.state.nodes
-    },
-    onClick: async (node) => {
-      if(node.type === "DIRECTORY") {
-        // DIRECTORY인 경우 처리
-        // 여기에서 Breadcrumb 관련 처리를 하게 되면 nodes에서는 breadcrumb 처리를 몰라도 됨
-        const nextNodes = await request(node.id);
-        this.setState({
-          ...this.state,
-          depth: [...this.state.depth, node],
-          nodes: nextNodes,
-        })
-      }else if(node.type === "FILE") {
-        // FILE 의 경우 처리
-        console.log("d");
-      }
-    } 
-  });
+    initialState: this.state.nodes,
+    onClick: async (selectedNode) => {
+      try {
+        if(selectedNode.type === "DIRECTORY") {
+          const nextNodes = await loadingRequest(selectedNode.id);
 
-  this.setState = (nextState) => {
-    this.state = nextState
-    breadcrumb.setState(this.state.depth);
-    nodes.setState({
+          this.setState({
+            ...this.state,
+            depth: [...this.state.depth, selectedNode], // push
+            nodes: nextNodes,
+          })
+
+        }else if(selectedNode.type === "FILE"){
+          //
+          this.setState({
+            ...this.state,
+            selectedFilePath: selectedNode.filePath
+          })
+        }
+      } catch(e) {
+        throw new Error(e.maessage);
+      }
+    },
+    onBackClick: async () => {
+      try {
+        // 이전 state를 복사하여 처리
+        const nextState = { ...this.state };
+        nextState.depth.pop();
+
+        const prevNodeId = nextState.depth.length === 0 ? null : nextState.depth[nextState.depth.length-1].id;
+
+        // root로 온 경우이므로 root처리
+        if(prevNodeId === null) {
+          // const rootNodes = 
+          await init();
+        }else{
+          const prevNodes = await loadingRequest(prevNodeId);
+          this.setState({
+            ...this.state,
+            nodes: prevNodes
+          })
+        }
+      
+      } catch(e) {
+        throw new Error(e);
+      }
+    }
+  })
+
+  const imageView = new ImageView({
+    $app,
+    initialState: null
+  })
+
+  const loading = new Loading({ 
+    $app,
+    initialState: true,
+  })
+
+  this.setState = nextState => {
+    this.state = nextState;
+
+    nodes.setState({ 
       isRoot: this.state.isRoot,
-      nodes: this.state.nodes
-    })
+      nodes: this.state.nodes,
+    });
+
+    breadcrumb.setState({
+      depth: this.state.depth
+    });
+
+    imageView.setState(this.state.selectedFilePath);
+
   }
 
-  this.init = async () => {
-    try{
-      const rootNodes = await request();
+  const init = async () => {
+    try {
+      const rootNodes = await loadingRequest();
       this.setState({
         ...this.state,
         isRoot: true,
-        nodes: rootNodes
+        nodes: rootNodes,
       })
-    }catch(e) {
-      throw new Error(e.message);
+    } catch(e) {
+      throw new Error(e);
     }
   }
 
-  this.init();
+  const loadingRequest = async id => {
+    try {
+      loading.setState(true);
+      return await request(id);
+    }catch(e) {
+      throw new Error(e);
+    } finally {
+      loading.setState(false);
+    }
+  }
+
+  init();
 }
 
 export default App;
